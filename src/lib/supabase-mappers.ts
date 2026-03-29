@@ -20,6 +20,7 @@ export function rowToTrade(row: TradeRow): Trade {
     riskPercent: row.risk_percent,
     rrRatio: row.rr_ratio,
     strategy: row.strategy,
+    strategyKey: row.strategy_key ?? 'default',
     reason: row.reason,
     emotionBefore: row.emotion_before as Trade['emotionBefore'],
     emotionDuring: row.emotion_during as Trade['emotionDuring'],

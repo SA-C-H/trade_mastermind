@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { BarChart3, BookOpen, Bot, CalendarDays, ClipboardList, Images, LayoutDashboard, ListOrdered, Plus, Settings, TrendingUp } from 'lucide-react';
+import { BarChart3, BookOpen, Bot, CalendarDays, ChartCandlestick, ClipboardList, Images, LayoutDashboard, ListOrdered, Plus, Settings, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/hooks/use-i18n';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -9,6 +9,7 @@ const navItems = [
   { to: '/trades', icon: ListOrdered, navKey: 'trades' as const },
   { to: '/trades/new', icon: Plus, navKey: 'newTrade' as const },
   { to: '/analytics', icon: BarChart3, navKey: 'analytics' as const },
+  { to: '/charts', icon: ChartCandlestick, navKey: 'charts' as const },
   { to: '/calendar', icon: CalendarDays, navKey: 'calendar' as const },
   { to: '/playbook', icon: BookOpen, navKey: 'playbook' as const },
   { to: '/plan', icon: ClipboardList, navKey: 'plan' as const },
@@ -22,6 +23,7 @@ const mobileNavItems = [
   { to: '/trades', icon: ListOrdered, navKey: 'trades' as const },
   { to: '/trades/new', icon: Plus, navKey: 'newTrade' as const },
   { to: '/analytics', icon: BarChart3, navKey: 'analytics' as const },
+  { to: '/charts', icon: ChartCandlestick, navKey: 'charts' as const },
   { to: '/settings', icon: Settings, navKey: 'settings' as const },
 ];
 
@@ -74,7 +76,7 @@ export default function AppLayout() {
         </main>
 
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-          <div className="grid grid-cols-5 px-1 py-1">
+          <div className="grid grid-cols-6 px-0.5 py-1">
             {mobileNavItems.map((item) => (
               <NavLink
                 key={item.to}
@@ -82,13 +84,13 @@ export default function AppLayout() {
                 end={item.to === '/'}
                 className={({ isActive }) =>
                   cn(
-                    'flex flex-col items-center justify-center gap-1 rounded-md py-2 text-[10px] font-medium transition-colors',
+                    'flex flex-col items-center justify-center gap-0.5 rounded-md py-1.5 text-[9px] font-medium transition-colors sm:gap-1 sm:py-2 sm:text-[10px]',
                     isActive ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'
                   )
                 }
               >
-                <item.icon className="h-4 w-4" />
-                <span className="leading-none">{t(`nav.${item.navKey}`)}</span>
+                <item.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="max-w-[3.75rem] truncate text-center leading-none">{t(`nav.${item.navKey}`)}</span>
               </NavLink>
             ))}
           </div>

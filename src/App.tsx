@@ -18,6 +18,7 @@ import TradingPlan from "./pages/TradingPlan";
 import SettingsPage from "./pages/SettingsPage";
 import AIAssistant from "./pages/AIAssistant";
 import Gallery from "./pages/Gallery";
+import TradingViewPage from "./pages/TradingViewPage";
 import LoginPage from "./pages/LoginPage";
 import NotFound from "./pages/NotFound";
 
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="/trades" element={<Trades />} />
               <Route path="/trades/new" element={<NewTrade />} />
               <Route path="/analytics" element={<Analytics />} />
+              <Route path="/charts" element={<TradingViewPage />} />
               <Route path="/calendar" element={<CalendarView />} />
               <Route path="/playbook" element={<Playbook />} />
               <Route path="/plan" element={<TradingPlan />} />

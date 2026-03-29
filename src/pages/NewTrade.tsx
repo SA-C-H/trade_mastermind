@@ -10,6 +10,7 @@ import { EmotionalState, TradingSession, TradeDirection } from '@/lib/types';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { usePlaybookConditions } from '@/hooks/use-playbook-conditions';
+import { useTradingStrategies } from '@/hooks/use-trading-strategies';
 import { useCreateTrade } from '@/hooks/use-trades';
 import { computeRrRatio } from '@/lib/supabase-mappers';
 import { assertTradeImageFilesAllowed } from '@/lib/trade-image-upload';
@@ -25,7 +26,9 @@ export default function NewTrade() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const { ready, session: authSession } = useSupabaseSession();
-  const { data: conditions = [], isLoading: loadingPb } = usePlaybookConditions();
+  const { data: strategies = [], isLoading: loadingStrat } = useTradingStrategies();
+  const [strategyId, setStrategyId] = useState('');
+  const { data: conditions = [], isLoading: loadingPb } = usePlaybookConditions(strategyId || null);
   const createTrade = useCreateTrade();
 
   const [instrument, setInstrument] = useState('');
@@ -33,7 +36,6 @@ export default function NewTrade() {
   const [time, setTime] = useState('');
   const [session, setSession] = useState<TradingSession | ''>('');
   const [direction, setDirection] = useState<TradeDirection | ''>('');
-  const [strategy, setStrategy] = useState('');
   const [entryPrice, setEntryPrice] = useState('');
   const [stopLoss, setStopLoss] = useState('');
   const [takeProfit, setTakeProfit] = useState('');
@@ -49,22 +51,33 @@ export default function NewTrade() {
   const [filesAfter, setFilesAfter] = useState<File[]>([]);
 
   useEffect(() => {
+    if (!strategies.length) return;
+    if (!strategyId || !strategies.some(s => s.id === strategyId)) {
+      setStrategyId(strategies[0].id);
+    }
+  }, [strategies, strategyId]);
+
+  useEffect(() => {
+    setPlaybookChecks({});
+  }, [strategyId]);
+
+  useEffect(() => {
     if (!conditions.length) return;
     setPlaybookChecks(prev => {
-      const next = { ...prev };
+      const next: Record<string, boolean> = {};
       for (const c of conditions) {
-        if (next[c.id] === undefined) next[c.id] = false;
+        next[c.id] = prev[c.id] ?? false;
       }
       return next;
     });
   }, [conditions]);
 
-  const allChecked = conditions.length > 0 && conditions.every(c => playbookChecks[c.id]);
+  const allChecked = conditions.length === 0 || conditions.every(c => playbookChecks[c.id]);
   const isValid = allChecked;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!instrument.trim() || !date || !time || !session || !direction || !strategy.trim()) {
+    if (!instrument.trim() || !date || !time || !session || !direction || !strategyId) {
       toast.error(t('newTrade.errors.minFields'));
       return;
     }
@@ -99,6 +112,7 @@ export default function NewTrade() {
       conditionId: c.id,
       respected: !!playbookChecks[c.id],
     }));
+    const strategyName = strategies.find(s => s.id === strategyId)?.name ?? strategyId;
 
     try {
       await createTrade.mutateAsync({
@@ -115,7 +129,8 @@ export default function NewTrade() {
           risk_percent: rPct,
           risk_amount: rAmt,
           rr_ratio: rrRatio,
-          strategy: strategy.trim(),
+          strategy: strategyName,
+          strategy_key: strategyId,
           reason: reason.trim() || '—',
           emotion_before: emotionBefore,
           emotion_during: emotionDuring,
@@ -142,7 +157,7 @@ export default function NewTrade() {
     }
   };
 
-  if (!ready || loadingPb) {
+  if (!ready || loadingStrat || !strategyId || loadingPb) {
     return <div className="p-4 lg:p-6 text-sm text-muted-foreground">{t('newTrade.loading')}</div>;
   }
 
@@ -173,59 +188,70 @@ export default function NewTrade() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">{t('newTrade.general')}</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">{t('newTrade.instrument')}</Label>
-              <Input
-                value={instrument}
-                onChange={e => setInstrument(e.target.value)}
-                placeholder="EUR/USD"
-                className="bg-secondary border-border"
-              />
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">{t('newTrade.instrument')}</Label>
+                <Input
+                  value={instrument}
+                  onChange={e => setInstrument(e.target.value)}
+                  placeholder="EUR/USD"
+                  className="bg-secondary border-border"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">{t('newTrade.date')}</Label>
+                <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="bg-secondary border-border" />
+              </div>
+              <div className="space-y-1.5 sm:col-span-2 lg:col-span-1">
+                <Label className="text-xs text-muted-foreground">{t('newTrade.time')}</Label>
+                <Input type="time" value={time} onChange={e => setTime(e.target.value)} className="bg-secondary border-border" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">{t('newTrade.session')}</Label>
+                <Select value={session || undefined} onValueChange={v => setSession(v as TradingSession)}>
+                  <SelectTrigger className="bg-secondary border-border">
+                    <SelectValue placeholder={t('common.select')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sessions.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {t(`session.${s}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">{t('newTrade.direction')}</Label>
+                <Select value={direction || undefined} onValueChange={v => setDirection(v as TradeDirection)}>
+                  <SelectTrigger className="bg-secondary border-border">
+                    <SelectValue placeholder={t('common.select')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="long">{t('direction.long')}</SelectItem>
+                    <SelectItem value="short">{t('direction.short')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">{t('newTrade.date')}</Label>
-              <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="bg-secondary border-border" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">{t('newTrade.time')}</Label>
-              <Input type="time" value={time} onChange={e => setTime(e.target.value)} className="bg-secondary border-border" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">{t('newTrade.session')}</Label>
-              <Select value={session || undefined} onValueChange={v => setSession(v as TradingSession)}>
+              <Label className="text-xs text-muted-foreground">{t('newTrade.strategyPick')}</Label>
+              <Select value={strategyId} onValueChange={setStrategyId}>
                 <SelectTrigger className="bg-secondary border-border">
                   <SelectValue placeholder={t('common.select')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {sessions.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {t(`session.${s}`)}
+                  {strategies.map(s => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">{t('newTrade.direction')}</Label>
-              <Select value={direction || undefined} onValueChange={v => setDirection(v as TradeDirection)}>
-                <SelectTrigger className="bg-secondary border-border">
-                  <SelectValue placeholder={t('common.select')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="long">{t('direction.long')}</SelectItem>
-                  <SelectItem value="short">{t('direction.short')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">{t('newTrade.strategy')}</Label>
-              <Input
-                value={strategy}
-                onChange={e => setStrategy(e.target.value)}
-                placeholder={t('newTrade.strategyPlaceholder')}
-                className="bg-secondary border-border"
-              />
+              <p className="text-[11px] text-muted-foreground">{t('newTrade.strategyHint')}</p>
             </div>
           </CardContent>
         </Card>
@@ -381,6 +407,9 @@ export default function NewTrade() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
+            {conditions.length === 0 && (
+              <p className="text-sm text-muted-foreground">{t('playbook.noRulesYet')}</p>
+            )}
             {conditions.map(condition => (
               <div key={condition.id} className="flex items-start gap-3">
                 <Checkbox
@@ -432,7 +461,7 @@ export default function NewTrade() {
           </CardContent>
         </Card>
 
-        <div className="sticky bottom-16 lg:bottom-4 bg-background/95 backdrop-blur border border-border rounded-lg p-3 flex flex-col sm:flex-row gap-3">
+        <div className="sticky z-30 bottom-20 lg:bottom-4 bg-background/95 backdrop-blur border border-border rounded-lg p-3 flex flex-col sm:flex-row gap-3 shadow-sm">
           <Button type="submit" className="gap-1.5 w-full sm:w-auto" disabled={createTrade.isPending}>
             {createTrade.isPending ? t('newTrade.saving') : t('newTrade.save')}
           </Button>

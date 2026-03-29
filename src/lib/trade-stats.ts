@@ -63,6 +63,52 @@ export function computeDashboardStats(trades: Trade[]) {
     });
   })();
 
+  const monthlyBuckets = (() => {
+    const agg = new Map<string, { pnl: number; count: number; wins: number }>();
+    for (const t of trades) {
+      const d = new Date(t.date);
+      if (Number.isNaN(d.getTime())) continue;
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      const cur = agg.get(key) ?? { pnl: 0, count: 0, wins: 0 };
+      cur.pnl += t.result;
+      cur.count += 1;
+      if (t.result > 0) cur.wins += 1;
+      agg.set(key, cur);
+    }
+    return [...agg.entries()]
+      .map(([key, v]) => {
+        const [y, m] = key.split('-').map(Number);
+        return {
+          year: y,
+          month: m,
+          pnl: Number(v.pnl.toFixed(2)),
+          trades: v.count,
+          winRate: v.count ? Math.round((v.wins / v.count) * 100) : 0,
+        };
+      })
+      .sort((a, b) => (a.year !== b.year ? a.year - b.year : a.month - b.month));
+  })();
+
+  const last30DaysPnl = (() => {
+    const byDay = new Map<string, number>();
+    for (const t of trades) {
+      const d = new Date(t.date);
+      if (Number.isNaN(d.getTime())) continue;
+      const dayKey = d.toISOString().slice(0, 10);
+      byDay.set(dayKey, (byDay.get(dayKey) ?? 0) + t.result);
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const rows: { dayKey: string; pnl: number }[] = [];
+    for (let i = 29; i >= 0; i -= 1) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const dayKey = d.toISOString().slice(0, 10);
+      rows.push({ dayKey, pnl: Number((byDay.get(dayKey) ?? 0).toFixed(2)) });
+    }
+    return rows;
+  })();
+
   const missedBE = trades.filter(t => t.result < 0 && t.result > -t.riskAmount * 0.3).length;
   const idealAvgRR = wins.length ? (wins.reduce((s, t) => s + t.rrRatio, 0) / wins.length).toFixed(2) : '0';
   const idealMaxRR = wins.length ? Math.max(...wins.map(t => t.rrRatio)).toFixed(2) : '0';
@@ -88,6 +134,8 @@ export function computeDashboardStats(trades: Trade[]) {
     directionData,
     sessionData,
     dayPerf,
+    monthlyBuckets,
+    last30DaysPnl,
     missedBE,
     idealAvgRR,
     idealMaxRR,

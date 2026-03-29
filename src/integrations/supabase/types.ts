@@ -15,21 +15,48 @@ export type Database = {
       playbook_conditions: {
         Row: {
           user_id: string
+          strategy_id: string
           id: string
           label: string
           description: string | null
         }
         Insert: {
           user_id: string
+          strategy_id: string
           id: string
           label: string
           description?: string | null
         }
         Update: {
           user_id?: string
+          strategy_id?: string
           id?: string
           label?: string
           description?: string | null
+        }
+        Relationships: []
+      }
+      trading_strategies: {
+        Row: {
+          user_id: string
+          id: string
+          name: string
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          user_id: string
+          id: string
+          name: string
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          user_id?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          created_at?: string
         }
         Relationships: []
       }
@@ -50,6 +77,7 @@ export type Database = {
           risk_percent: number
           rr_ratio: number
           strategy: string
+          strategy_key: string
           reason: string
           emotion_before: string
           emotion_during: string
@@ -76,6 +104,7 @@ export type Database = {
           risk_percent: number
           rr_ratio: number
           strategy: string
+          strategy_key?: string
           reason: string
           emotion_before: string
           emotion_during: string
@@ -102,6 +131,7 @@ export type Database = {
           risk_percent?: number
           rr_ratio?: number
           strategy?: string
+          strategy_key?: string
           reason?: string
           emotion_before?: string
           emotion_during?: string

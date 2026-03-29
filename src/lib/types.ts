@@ -2,8 +2,16 @@ export type TradingSession = 'London' | 'New York' | 'Asian';
 export type TradeDirection = 'long' | 'short';
 export type EmotionalState = 'calm' | 'confident' | 'anxious' | 'fearful' | 'greedy' | 'frustrated' | 'neutral';
 
+/** User-defined strategy (slug id + display name); playbook rules are per strategy. */
+export interface TradingStrategy {
+  id: string;
+  name: string;
+  sortOrder: number;
+}
+
 export interface PlaybookCondition {
   id: string;
+  strategyId: string;
   label: string;
   description?: string;
 }
@@ -28,6 +36,8 @@ export interface Trade {
   riskPercent: number;
   rrRatio: number;
   strategy: string;
+  /** Slug id of trading_strategies row; playbook validated against this strategy's rules */
+  strategyKey: string;
   reason: string;
   emotionBefore: EmotionalState;
   emotionDuring: EmotionalState;
