@@ -1,25 +1,20 @@
 import { createContext, useCallback, useEffect, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { translate, type Locale } from '@/i18n/translations';
-import { toast } from 'sonner';
-
-function getLocale(): Locale {
-  try {
-    const s = localStorage.getItem('trade-mastermind-locale');
-    if (s === 'fr' || s === 'en') return s;
-  } catch {
-    /* ignore */
-  }
-  return navigator.language.toLowerCase().startsWith('fr') ? 'fr' : 'en';
-}
 
 export type SupabaseAuthContextValue = {
   session: Session | null;
   ready: boolean;
+  signInWithGoogle: () => Promise<void>;
+  signOut: () => Promise<void>;
 };
 
-export const SupabaseAuthContext = createContext<SupabaseAuthContextValue>({ session: null, ready: false });
+export const SupabaseAuthContext = createContext<SupabaseAuthContextValue>({
+  session: null,
+  ready: false,
+  signInWithGoogle: async () => {},
+  signOut: async () => {},
+});
 
 export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -27,20 +22,22 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
 
   const bootstrap = useCallback(async () => {
     const { data: { session: existing } } = await supabase.auth.getSession();
-    if (existing) {
-      setSession(existing);
-      setReady(true);
-      return;
-    }
-    const { data, error } = await supabase.auth.signInAnonymously();
-    if (error) {
-      console.error(error);
-      toast.error(translate(getLocale(), 'toast.authAnonymous'));
-      setSession(null);
-    } else {
-      setSession(data.session);
-    }
+    setSession(existing ?? null);
     setReady(true);
+  }, []);
+
+  const signInWithGoogle = useCallback(async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    });
+    if (error) throw error;
+  }, []);
+
+  const signOut = useCallback(async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    setSession(null);
   }, []);
 
   useEffect(() => {
@@ -51,9 +48,5 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, [bootstrap]);
 
-  return (
-    <SupabaseAuthContext.Provider value={{ session, ready }}>
-      {children}
-    </SupabaseAuthContext.Provider>
-  );
+  return <SupabaseAuthContext.Provider value={{ session, ready, signInWithGoogle, signOut }}>{children}</SupabaseAuthContext.Provider>;
 }

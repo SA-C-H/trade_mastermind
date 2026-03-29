@@ -7,10 +7,13 @@ import { Settings } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useI18n } from '@/hooks/use-i18n';
 import type { Locale } from '@/i18n/translations';
+import { useSupabaseSession } from '@/hooks/use-supabase-session';
+import { toast } from 'sonner';
 
 export default function SettingsPage() {
   const { t, locale, setLocale } = useI18n();
   const { theme, setTheme } = useTheme();
+  const { session, signInWithGoogle, signOut } = useSupabaseSession();
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
@@ -48,6 +51,41 @@ export default function SettingsPage() {
               </SelectContent>
             </Select>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-card border-border">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-medium">{t('settings.auth')}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-xs text-muted-foreground">
+            {session?.user?.email
+              ? t('settings.connectedAs', { email: session.user.email })
+              : t('settings.notConnected')}
+          </p>
+          {session ? (
+            <Button
+              variant="outline"
+              onClick={() => {
+                void signOut()
+                  .then(() => toast.success(t('settings.logoutSuccess')))
+                  .catch((e) => toast.error(e instanceof Error ? e.message : t('common.error')));
+              }}
+            >
+              {t('settings.logout')}
+            </Button>
+          ) : (
+            <Button
+              onClick={() => {
+                void signInWithGoogle().catch((e) =>
+                  toast.error(e instanceof Error ? e.message : t('common.error'))
+                );
+              }}
+            >
+              {t('settings.loginGoogle')}
+            </Button>
+          )}
         </CardContent>
       </Card>
 

@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { BarChart3, BookOpen, Bot, CalendarDays, Images, LayoutDashboard, ListOrdered, Plus, Settings, TrendingUp } from 'lucide-react';
+import { BarChart3, BookOpen, Bot, CalendarDays, ClipboardList, Images, LayoutDashboard, ListOrdered, Plus, Settings, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/hooks/use-i18n';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -11,6 +11,7 @@ const navItems = [
   { to: '/analytics', icon: BarChart3, navKey: 'analytics' as const },
   { to: '/calendar', icon: CalendarDays, navKey: 'calendar' as const },
   { to: '/playbook', icon: BookOpen, navKey: 'playbook' as const },
+  { to: '/plan', icon: ClipboardList, navKey: 'plan' as const },
   { to: '/gallery', icon: Images, navKey: 'gallery' as const },
   { to: '/ai', icon: Bot, navKey: 'ai' as const },
   { to: '/settings', icon: Settings, navKey: 'settings' as const },
