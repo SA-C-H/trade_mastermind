@@ -1,3 +1,3 @@
-# Welcome to your Lovable project
+# TradeLab
 
 TODO: Document your project here
