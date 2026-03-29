@@ -5,14 +5,16 @@ import { supabase } from '@/integrations/supabase/client';
 export type SupabaseAuthContextValue = {
   session: Session | null;
   ready: boolean;
-  signInWithGoogle: () => Promise<void>;
+  signInWithPassword: (email: string, password: string) => Promise<void>;
+  signUpWithPassword: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
 export const SupabaseAuthContext = createContext<SupabaseAuthContextValue>({
   session: null,
   ready: false,
-  signInWithGoogle: async () => {},
+  signInWithPassword: async () => {},
+  signUpWithPassword: async () => {},
   signOut: async () => {},
 });
 
@@ -26,11 +28,13 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     setReady(true);
   }, []);
 
-  const signInWithGoogle = useCallback(async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin },
-    });
+  const signInWithPassword = useCallback(async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+  }, []);
+
+  const signUpWithPassword = useCallback(async (email: string, password: string) => {
+    const { error } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
   }, []);
 
@@ -48,5 +52,11 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, [bootstrap]);
 
-  return <SupabaseAuthContext.Provider value={{ session, ready, signInWithGoogle, signOut }}>{children}</SupabaseAuthContext.Provider>;
+  return (
+    <SupabaseAuthContext.Provider
+      value={{ session, ready, signInWithPassword, signUpWithPassword, signOut }}
+    >
+      {children}
+    </SupabaseAuthContext.Provider>
+  );
 }

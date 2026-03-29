@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 export default function SettingsPage() {
   const { t, locale, setLocale } = useI18n();
   const { theme, setTheme } = useTheme();
-  const { session, signInWithGoogle, signOut } = useSupabaseSession();
+  const { session, signOut } = useSupabaseSession();
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
@@ -76,15 +76,7 @@ export default function SettingsPage() {
               {t('settings.logout')}
             </Button>
           ) : (
-            <Button
-              onClick={() => {
-                void signInWithGoogle().catch((e) =>
-                  toast.error(e instanceof Error ? e.message : t('common.error'))
-                );
-              }}
-            >
-              {t('settings.loginGoogle')}
-            </Button>
+            <Button variant="secondary" disabled>{t('settings.notConnected')}</Button>
           )}
         </CardContent>
       </Card>
