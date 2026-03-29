@@ -1,0 +1,5 @@
+project_id = "cssvyfgjvalcrllrrpdf"
+
+# Avoid 401 on ai-assistant when the gateway is strict about JWT; anon + user session still required client-side.
+[functions.ai-assistant]
+verify_jwt = false
