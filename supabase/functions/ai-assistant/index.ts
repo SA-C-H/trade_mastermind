@@ -202,7 +202,24 @@ serve(async (req) => {
     let response: Response;
     let aiProvider: "anthropic" | "openai" | null = null;
 
-    if (anthropicKey) {
+    if (openaiKey) {
+      aiProvider = "openai";
+      const body = JSON.stringify({
+        model: openaiModel,
+        messages: openaiMessages,
+        stream: true,
+      });
+      response = await fetchWithRateLimitRetry(() =>
+        fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${openaiKey}`,
+            "Content-Type": "application/json",
+          },
+          body,
+        })
+      );
+    } else if (anthropicKey) {
       aiProvider = "anthropic";
       const { system, rest } = extractSystemAndRest(openaiMessages);
       const anthropicMessages = toAnthropicMessages(rest);
@@ -241,28 +258,11 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-    } else if (openaiKey) {
-      aiProvider = "openai";
-      const body = JSON.stringify({
-        model: openaiModel,
-        messages: openaiMessages,
-        stream: true,
-      });
-      response = await fetchWithRateLimitRetry(() =>
-        fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${openaiKey}`,
-            "Content-Type": "application/json",
-          },
-          body,
-        })
-      );
     } else {
       return new Response(
         JSON.stringify({
           error:
-            "No AI secret found. In Supabase → Edge Functions → Secrets add ANTHROPIC_API_KEY (Claude, recommended) or OPENAI_API_KEY as fallback, then redeploy ai-assistant.",
+            "No AI secret found. In Supabase → Edge Functions → Secrets add OPENAI_API_KEY (recommended) or ANTHROPIC_API_KEY as fallback, then redeploy ai-assistant.",
         }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );

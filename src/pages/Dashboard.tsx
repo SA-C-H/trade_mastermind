@@ -134,12 +134,12 @@ export default function Dashboard() {
               <CardTitle className="text-lg font-semibold text-foreground">{t('dashboard.pnlTitle')}</CardTitle>
               <p className="text-xs text-muted-foreground">{t('dashboard.pnlSubtitle')}</p>
             </div>
-            <div className="flex items-center gap-0 bg-muted/30 rounded-lg border border-border">
+            <div className="flex flex-wrap items-center gap-1 bg-muted/30 rounded-lg border border-border p-1">
               {(['all', 'day', '1h', '15m'] as const).map(tab => (
                 <button
                   key={tab}
                   onClick={() => setPnlTab(tab)}
-                  className={`px-3 py-1.5 text-xs font-medium transition-colors rounded-md ${
+                  className={`px-2.5 py-1.5 text-xs font-medium transition-colors rounded-md ${
                     pnlTab === tab ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >

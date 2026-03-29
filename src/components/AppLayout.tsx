@@ -17,15 +17,23 @@ const navItems = [
   { to: '/settings', icon: Settings, navKey: 'settings' as const },
 ];
 
+const mobileNavItems = [
+  { to: '/', icon: LayoutDashboard, navKey: 'dashboard' as const },
+  { to: '/trades', icon: ListOrdered, navKey: 'trades' as const },
+  { to: '/trades/new', icon: Plus, navKey: 'newTrade' as const },
+  { to: '/analytics', icon: BarChart3, navKey: 'analytics' as const },
+  { to: '/settings', icon: Settings, navKey: 'settings' as const },
+];
+
 export default function AppLayout() {
   const { t } = useI18n();
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <aside className="w-16 lg:w-56 flex-shrink-0 bg-sidebar border-r border-sidebar-border flex flex-col">
+    <div className="flex h-screen overflow-hidden bg-background">
+      <aside className="hidden lg:flex w-56 flex-shrink-0 bg-sidebar border-r border-sidebar-border flex-col">
         <div className="h-14 flex items-center gap-2 px-4 border-b border-sidebar-border">
           <TrendingUp className="h-6 w-6 text-primary flex-shrink-0" />
-          <span className="hidden lg:block text-sm font-semibold text-foreground tracking-tight">{t('nav.appName')}</span>
+          <span className="text-sm font-semibold text-foreground tracking-tight">{t('nav.appName')}</span>
         </div>
         <nav className="flex-1 py-3 space-y-1 px-2">
           {navItems.map((item) => (
@@ -43,18 +51,49 @@ export default function AppLayout() {
               }
             >
               <item.icon className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden lg:block">{t(`nav.${item.navKey}`)}</span>
+              <span>{t(`nav.${item.navKey}`)}</span>
             </NavLink>
           ))}
         </nav>
-        <div className="p-2 border-t border-sidebar-border flex justify-center lg:justify-start lg:px-3">
+        <div className="p-2 border-t border-sidebar-border flex justify-start px-3">
           <ThemeToggle />
         </div>
       </aside>
 
-      <main className="flex-1 overflow-auto">
-        <Outlet />
-      </main>
+      <div className="flex-1 min-w-0 flex flex-col">
+        <header className="lg:hidden h-14 px-4 border-b border-border bg-card flex items-center justify-between">
+          <div className="flex items-center gap-2 min-w-0">
+            <TrendingUp className="h-5 w-5 text-primary flex-shrink-0" />
+            <span className="text-sm font-semibold text-foreground truncate">{t('nav.appName')}</span>
+          </div>
+          <ThemeToggle />
+        </header>
+
+        <main className="flex-1 overflow-auto pb-20 lg:pb-0">
+          <Outlet />
+        </main>
+
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+          <div className="grid grid-cols-5 px-1 py-1">
+            {mobileNavItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === '/'}
+                className={({ isActive }) =>
+                  cn(
+                    'flex flex-col items-center justify-center gap-1 rounded-md py-2 text-[10px] font-medium transition-colors',
+                    isActive ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'
+                  )
+                }
+              >
+                <item.icon className="h-4 w-4" />
+                <span className="leading-none">{t(`nav.${item.navKey}`)}</span>
+              </NavLink>
+            ))}
+          </div>
+        </nav>
+      </div>
     </div>
   );
 }

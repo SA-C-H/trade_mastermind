@@ -52,10 +52,10 @@ export default function Trades() {
         </Button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-center gap-2">
         <Filter className="h-4 w-4 text-muted-foreground" />
         <Select value={directionFilter} onValueChange={setDirectionFilter}>
-          <SelectTrigger className="w-36 h-8 text-xs bg-secondary border-border">
+          <SelectTrigger className="w-full sm:w-36 h-8 text-xs bg-secondary border-border">
             <SelectValue placeholder={t('trades.filterDirection')} />
           </SelectTrigger>
           <SelectContent>
@@ -65,7 +65,7 @@ export default function Trades() {
           </SelectContent>
         </Select>
         <Select value={sessionFilter} onValueChange={setSessionFilter}>
-          <SelectTrigger className="w-36 h-8 text-xs bg-secondary border-border">
+          <SelectTrigger className="w-full sm:w-36 h-8 text-xs bg-secondary border-border">
             <SelectValue placeholder={t('trades.filterSession')} />
           </SelectTrigger>
           <SelectContent>
@@ -76,7 +76,7 @@ export default function Trades() {
           </SelectContent>
         </Select>
         <Select value={validFilter} onValueChange={setValidFilter}>
-          <SelectTrigger className="w-36 h-8 text-xs bg-secondary border-border">
+          <SelectTrigger className="w-full sm:w-36 h-8 text-xs bg-secondary border-border">
             <SelectValue placeholder={t('trades.filterValidity')} />
           </SelectTrigger>
           <SelectContent>
@@ -101,7 +101,67 @@ export default function Trades() {
         )}
       </div>
 
-      <Card className="bg-card border-border overflow-hidden">
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3">
+        {filteredTrades.map((trade) => (
+          <Card key={trade.id} className="bg-card border-border p-3 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <p className="text-sm font-semibold text-foreground">{trade.instrument}</p>
+                <p className="text-xs text-muted-foreground">{trade.date}</p>
+              </div>
+              <Badge
+                variant="outline"
+                className={cn(
+                  'text-xs',
+                  trade.isValid
+                    ? 'border-primary/50 text-primary bg-primary/10'
+                    : 'border-destructive/50 text-destructive bg-destructive/10'
+                )}
+              >
+                {trade.isValid ? t('trades.valid') : t('trades.invalid')}
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <Badge
+                variant="outline"
+                className={cn(
+                  'text-xs',
+                  trade.direction === 'long' ? 'border-primary/50 text-primary' : 'border-destructive/50 text-destructive'
+                )}
+              >
+                {t(`direction.${trade.direction}`)}
+              </Badge>
+              <span
+                className={cn(
+                  'font-mono font-semibold',
+                  trade.result >= 0 ? 'text-primary' : 'text-destructive'
+                )}
+              >
+                {trade.result >= 0 ? '+' : ''}
+                {trade.result.toFixed(2)} $
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-[11px]">
+              <div>
+                <p className="text-muted-foreground">{t('trades.tableEntry')}</p>
+                <p className="font-mono text-foreground">{trade.entryPrice}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">{t('trades.tableStop')}</p>
+                <p className="font-mono text-foreground">{trade.stopLoss}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">{t('trades.tableRr')}</p>
+                <p className="font-mono text-foreground">{trade.rrRatio.toFixed(2)}</p>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">{sessionLabel(trade.session)}</p>
+          </Card>
+        ))}
+      </div>
+
+      <Card className="hidden md:block bg-card border-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -174,6 +234,12 @@ export default function Trades() {
           <span>{t('trades.count', { count: filteredTrades.length })}</span>
         </div>
       </Card>
+
+      {filteredTrades.length === 0 && (
+        <Card className="bg-card border-border p-6 text-center text-sm text-muted-foreground">
+          {t('trades.count', { count: 0 })}
+        </Card>
+      )}
     </div>
   );
 }

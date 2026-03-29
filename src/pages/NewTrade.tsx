@@ -432,11 +432,11 @@ export default function NewTrade() {
           </CardContent>
         </Card>
 
-        <div className="flex gap-3">
-          <Button type="submit" className="gap-1.5" disabled={createTrade.isPending}>
+        <div className="sticky bottom-16 lg:bottom-4 bg-background/95 backdrop-blur border border-border rounded-lg p-3 flex flex-col sm:flex-row gap-3">
+          <Button type="submit" className="gap-1.5 w-full sm:w-auto" disabled={createTrade.isPending}>
             {createTrade.isPending ? t('newTrade.saving') : t('newTrade.save')}
           </Button>
-          <Button type="button" variant="outline" onClick={() => navigate('/trades')}>
+          <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => navigate('/trades')}>
             {t('common.cancel')}
           </Button>
         </div>
