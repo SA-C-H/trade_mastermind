@@ -1,8 +1,9 @@
-import { NavLink, Outlet } from 'react-router-dom';
-import { BarChart3, BookOpen, Bot, CalendarDays, ChartCandlestick, ClipboardList, Images, LayoutDashboard, ListOrdered, Plus, Settings, TrendingUp } from 'lucide-react';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { BarChart3, BookOpen, Bot, CalendarDays, ChartCandlestick, ClipboardList, Ellipsis, Images, LayoutDashboard, ListOrdered, Plus, Settings, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/hooks/use-i18n';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, navKey: 'dashboard' as const },
@@ -23,12 +24,23 @@ const mobileNavItems = [
   { to: '/trades', icon: ListOrdered, navKey: 'trades' as const },
   { to: '/trades/new', icon: Plus, navKey: 'newTrade' as const },
   { to: '/analytics', icon: BarChart3, navKey: 'analytics' as const },
+];
+
+const mobileHiddenItems = [
   { to: '/charts', icon: ChartCandlestick, navKey: 'charts' as const },
+  { to: '/calendar', icon: CalendarDays, navKey: 'calendar' as const },
+  { to: '/playbook', icon: BookOpen, navKey: 'playbook' as const },
+  { to: '/plan', icon: ClipboardList, navKey: 'plan' as const },
+  { to: '/gallery', icon: Images, navKey: 'gallery' as const },
+  { to: '/ai', icon: Bot, navKey: 'ai' as const },
   { to: '/settings', icon: Settings, navKey: 'settings' as const },
 ];
 
 export default function AppLayout() {
   const { t } = useI18n();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isHiddenRouteActive = mobileHiddenItems.some((item) => location.pathname === item.to);
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -76,7 +88,7 @@ export default function AppLayout() {
         </main>
 
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-          <div className="grid grid-cols-6 px-0.5 py-1">
+          <div className="grid grid-cols-5 px-1 py-1">
             {mobileNavItems.map((item) => (
               <NavLink
                 key={item.to}
@@ -84,15 +96,42 @@ export default function AppLayout() {
                 end={item.to === '/'}
                 className={({ isActive }) =>
                   cn(
-                    'flex flex-col items-center justify-center gap-0.5 rounded-md py-1.5 text-[9px] font-medium transition-colors sm:gap-1 sm:py-2 sm:text-[10px]',
+                    'flex flex-col items-center justify-center gap-0.5 rounded-md py-2 text-[10px] font-medium transition-colors',
                     isActive ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'
                   )
                 }
               >
-                <item.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                <span className="max-w-[3.75rem] truncate text-center leading-none">{t(`nav.${item.navKey}`)}</span>
+                <item.icon className="h-[18px] w-[18px]" />
+                <span className="max-w-[4.25rem] truncate text-center leading-none">{t(`nav.${item.navKey}`)}</span>
               </NavLink>
             ))}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className={cn(
+                    'flex flex-col items-center justify-center gap-0.5 rounded-md py-2 text-[10px] font-medium transition-colors',
+                    isHiddenRouteActive ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'
+                  )}
+                  aria-label={t('nav.more')}
+                >
+                  <Ellipsis className="h-[18px] w-[18px]" />
+                  <span className="max-w-[4.25rem] truncate text-center leading-none">{t('nav.more')}</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" side="top" className="mb-2 w-52">
+                {mobileHiddenItems.map((item) => (
+                  <DropdownMenuItem
+                    key={item.to}
+                    onSelect={() => navigate(item.to)}
+                    className={cn('flex items-center gap-2', location.pathname === item.to && 'text-primary')}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{t(`nav.${item.navKey}`)}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </nav>
       </div>

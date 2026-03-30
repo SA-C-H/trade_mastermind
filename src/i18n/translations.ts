@@ -31,6 +31,7 @@ export const translations: Record<Locale, Messages> = {
       ai: 'Assistant IA',
       settings: 'Paramètres',
       appName: 'TradeLab',
+      more: 'Plus',
     },
     theme: {
       light: 'Clair',
@@ -404,6 +405,7 @@ export const translations: Record<Locale, Messages> = {
       ai: 'AI Assistant',
       settings: 'Settings',
       appName: 'TradeLab',
+      more: 'More',
     },
     theme: {
       light: 'Light',
