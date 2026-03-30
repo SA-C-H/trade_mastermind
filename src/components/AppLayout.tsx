@@ -62,8 +62,8 @@ export default function AppLayout() {
         </div>
       </aside>
 
-      <div className="flex-1 min-w-0 flex flex-col">
-        <header className="lg:hidden h-14 px-4 border-b border-border bg-card flex items-center justify-between">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <header className="shrink-0 lg:hidden h-14 px-4 border-b border-border bg-card flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0">
             <TrendingUp className="h-5 w-5 text-primary flex-shrink-0" />
             <span className="text-sm font-semibold text-foreground truncate">{t('nav.appName')}</span>
@@ -71,7 +71,7 @@ export default function AppLayout() {
           <ThemeToggle />
         </header>
 
-        <main className="flex-1 overflow-auto pb-20 lg:pb-0">
+        <main className="w-full min-h-0 overflow-x-hidden overflow-y-auto overscroll-y-contain pb-20 [max-height:calc(100dvh-3.5rem)] lg:max-h-[100dvh] lg:pb-0">
           <Outlet />
         </main>
 
