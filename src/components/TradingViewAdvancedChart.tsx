@@ -8,6 +8,7 @@ const TV_SCRIPT = 'https://s3.tradingview.com/external-embedding/embed-widget-ad
 export type TradingViewChartProps = {
   symbol: string;
   interval?: string;
+  timezone?: string;
   className?: string;
 };
 
@@ -15,7 +16,12 @@ export type TradingViewChartProps = {
  * Embeds TradingView's free Advanced Chart widget (external script).
  * @see https://www.tradingview.com/widget-docs/widgets/charts/advanced-chart/
  */
-export function TradingViewAdvancedChart({ symbol, interval = 'D', className }: TradingViewChartProps) {
+export function TradingViewAdvancedChart({
+  symbol,
+  interval = 'D',
+  timezone = 'Etc/UTC',
+  className,
+}: TradingViewChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { resolvedTheme } = useTheme();
   const { locale } = useI18n();
@@ -40,7 +46,7 @@ export function TradingViewAdvancedChart({ symbol, interval = 'D', className }: 
       autosize: true,
       symbol: symbol.trim() || 'FOREXCOM:EURUSD',
       interval,
-      timezone: 'Etc/UTC',
+      timezone,
       theme: resolvedTheme === 'light' ? 'light' : 'dark',
       style: '1',
       locale: locale === 'fr' ? 'fr' : 'en',
@@ -48,6 +54,8 @@ export function TradingViewAdvancedChart({ symbol, interval = 'D', className }: 
       allow_symbol_change: true,
       calendar: false,
       hide_volume: false,
+      withdateranges: true,
+      details: true,
       support_host: 'https://www.tradingview.com',
     });
     root.appendChild(script);
@@ -55,7 +63,7 @@ export function TradingViewAdvancedChart({ symbol, interval = 'D', className }: 
     return () => {
       root.replaceChildren();
     };
-  }, [symbol, interval, resolvedTheme, locale]);
+  }, [symbol, interval, timezone, resolvedTheme, locale]);
 
   return (
     <div

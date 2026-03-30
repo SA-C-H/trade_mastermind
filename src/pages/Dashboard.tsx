@@ -28,6 +28,7 @@ import {
   Line,
 } from 'recharts';
 import { TrendingUp, TrendingDown, Target, BarChart3, CheckCircle2, XCircle, Info } from 'lucide-react';
+import { useUserSettings } from '@/hooks/use-user-settings';
 
 const tooltipWrapperStyleLight = { outline: 'none', border: 'none', boxShadow: 'none' };
 
@@ -109,6 +110,7 @@ export default function Dashboard() {
   const [pnlTab, setPnlTab] = useState<'all' | 'day' | '1h' | '15m'>('all');
   const { ready } = useSupabaseSession();
   const { data: trades = [], isLoading, isError, error } = useTrades();
+  const { data: userSettings } = useUserSettings();
   const stats = useMemo(() => computeDashboardStats(trades), [trades]);
 
   const {
@@ -180,6 +182,9 @@ export default function Dashboard() {
     const hit = monthlyBuckets.find((b) => b.year === n.getFullYear() && b.month === n.getMonth());
     return hit ? hit.pnl : 0;
   }, [monthlyBuckets]);
+
+  const initialCapital = userSettings?.initialCapital ?? 1000;
+  const accountBalance = initialCapital + totalPnL;
 
   const equityScrollMin = useMemo(() => {
     if (!isMobile || equityCurve.length <= 10) return undefined;
@@ -481,7 +486,7 @@ export default function Dashboard() {
                 {t('dashboard.accountBalance')} <Info className="h-3 w-3" />
               </p>
               <p className="font-mono text-lg font-semibold text-foreground sm:text-xl">
-                ${(1000 + totalPnL).toFixed(2)}
+                ${accountBalance.toFixed(2)}
               </p>
             </div>
             <div>

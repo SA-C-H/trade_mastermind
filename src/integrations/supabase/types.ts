@@ -60,6 +60,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_settings: {
+        Row: {
+          user_id: string
+          initial_capital: number
+          risk_per_trade_percent: number
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          initial_capital?: number
+          risk_per_trade_percent?: number
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          initial_capital?: number
+          risk_per_trade_percent?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       trades: {
         Row: {
           id: string

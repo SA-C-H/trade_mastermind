@@ -24,13 +24,20 @@ const PRESETS = [
   { symbol: 'SP:SPX', labelKey: 'tradingView.presetSpx' as const },
 ] as const;
 
-const INTERVALS = ['1', '5', '15', '60', '240', 'D', 'W'] as const;
+const INTERVALS = ['1', '3', '5', '15', '30', '60', '240', 'D', 'W'] as const;
 
 export default function TradingViewPage() {
   const { t } = useI18n();
   const [symbolInput, setSymbolInput] = useState(DEFAULT_SYMBOL);
   const [symbol, setSymbol] = useState(DEFAULT_SYMBOL);
-  const [interval, setInterval] = useState<string>('D');
+  const [interval, setInterval] = useState<string>('60');
+  const [timezone, setTimezone] = useState<string>(() => {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Etc/UTC';
+    } catch {
+      return 'Etc/UTC';
+    }
+  });
 
   const applySymbol = useCallback(() => {
     setSymbol(symbolInput.trim() || DEFAULT_SYMBOL);
@@ -79,7 +86,7 @@ export default function TradingViewPage() {
               </Button>
             ))}
           </div>
-          <div className="grid gap-4 sm:grid-cols-[1fr_auto_auto] sm:items-end">
+          <div className="grid gap-4 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end">
             <div className="space-y-2">
               <Label htmlFor="tv-symbol">{t('tradingView.symbol')}</Label>
               <Input
@@ -106,6 +113,23 @@ export default function TradingViewPage() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-2">
+              <Label>{t('tradingView.timezone')}</Label>
+              <Select value={timezone} onValueChange={setTimezone}>
+                <SelectTrigger className="w-full sm:w-[170px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Etc/UTC">UTC</SelectItem>
+                  <SelectItem value={Intl.DateTimeFormat().resolvedOptions().timeZone || 'Etc/UTC'}>
+                    {t('tradingView.timezoneLocal')}
+                  </SelectItem>
+                  <SelectItem value="Europe/Paris">Europe/Paris</SelectItem>
+                  <SelectItem value="America/New_York">America/New_York</SelectItem>
+                  <SelectItem value="Asia/Tokyo">Asia/Tokyo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <Button type="button" className="w-full sm:w-auto" onClick={applySymbol}>
               {t('tradingView.apply')}
             </Button>
@@ -116,7 +140,12 @@ export default function TradingViewPage() {
       <Card className="min-h-0 flex-1 overflow-hidden border-border">
         <CardContent className="p-0 sm:p-2">
           <div className="h-[min(720px,calc(100dvh-14rem))] w-full rounded-lg border border-border bg-card sm:h-[min(780px,calc(100dvh-12rem))]">
-            <TradingViewAdvancedChart symbol={symbol} interval={interval} className="rounded-lg" />
+            <TradingViewAdvancedChart
+              symbol={symbol}
+              interval={interval}
+              timezone={timezone}
+              className="rounded-lg"
+            />
           </div>
           <p className="px-3 py-2 text-center text-[11px] text-muted-foreground sm:px-4">
             {t('tradingView.attribution')}

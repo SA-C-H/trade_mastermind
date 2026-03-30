@@ -17,6 +17,7 @@ import { assertTradeImageFilesAllowed } from '@/lib/trade-image-upload';
 import { NOT_SIGNED_IN } from '@/lib/require-user-id';
 import { useSupabaseSession } from '@/hooks/use-supabase-session';
 import { useI18n } from '@/hooks/use-i18n';
+import { useUserSettings } from '@/hooks/use-user-settings';
 
 const emotions: EmotionalState[] = ['calm', 'confident', 'anxious', 'fearful', 'greedy', 'frustrated', 'neutral'];
 
@@ -26,6 +27,7 @@ export default function NewTrade() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const { ready, session: authSession } = useSupabaseSession();
+  const { data: userSettings } = useUserSettings();
   const { data: strategies = [], isLoading: loadingStrat } = useTradingStrategies();
   const [strategyId, setStrategyId] = useState('');
   const { data: conditions = [], isLoading: loadingPb } = usePlaybookConditions(strategyId || null);
@@ -56,6 +58,18 @@ export default function NewTrade() {
       setStrategyId(strategies[0].id);
     }
   }, [strategies, strategyId]);
+
+  // Prefill defaults (only if user hasn't typed anything yet)
+  useEffect(() => {
+    if (!userSettings) return;
+    if (!riskPercent) setRiskPercent(String(userSettings.riskPerTradePercent));
+    if (!riskAmount && userSettings.initialCapital && userSettings.riskPerTradePercent) {
+      const amt = (userSettings.initialCapital * userSettings.riskPerTradePercent) / 100;
+      if (Number.isFinite(amt) && amt > 0) setRiskAmount(amt.toFixed(2));
+    }
+    // intentionally only on first load of userSettings
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userSettings]);
 
   useEffect(() => {
     setPlaybookChecks({});
